@@ -20,10 +20,12 @@ def tweetScrape(count=50):
     # geocode = input('Please input geocode (example: 37.7821120598956,-122.400612831116,3km)')
     geocode = '37.7821120598956,-122.400612831116,3km'
     query = input('Please input search term (hashtag search, include \'#\'):')
+    print('Scraping Twitter...')
     api_response = twitter_api.search_tweets(q=query, count=count)
 
     for tweet in api_response:
-        data.append([tweet.text,tweet.created_at,geocode,None,tweet.favorite_count])
+        dt_tweet = tweet.created_at.isoformat()
+        data.append([tweet.text,dt_tweet[:-6],geocode,None,tweet.favorite_count])
 
     return pd.DataFrame(data,columns=columns)
 

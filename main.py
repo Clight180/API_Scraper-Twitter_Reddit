@@ -11,25 +11,29 @@ dfAdd = df
 while command != 'exit':
     if command == 'export':
         filename = 'scrapeDF_' + str(np.random.randint(100,999)) + '.csv'
+        df = df.reset_index(drop=True)
         df.to_csv(filename)
         print('Exported filename: ' + filename)
         break
     if command =='df size':
-        print('df size: ' + str(df.size))
+        print('df size: ' + str(df.index.size))
 
     command = input('Please command scrape query number, \'df size\', \'export\', or \'exit\' \n'
                     '{Praw: subreddit (1), redditor (not working); Tweepy: twitter (3), twitter user (not implemented)}: \n'
-                    '>>>: ')
+                    '>? ')
+    dfAdd = None
     match command:
         case '1':
-            dfAdd = subredditScrape()
+            dfAdd = subredditScrape(count=100)
         # case '2':
         #     dfAdd = redditorScrape()
         case '3':
-            dfAdd = tweetScrape()
+            dfAdd = tweetScrape(count=100)
         # case '4':
         #     dfAdd = userScrape()
 
-    df = pd.concat((df,dfAdd))
+    if command in ['1','2','3','4']:
+        print('Concatenating dfs...')
+        df = pd.concat((df,dfAdd))
 
 exit('Scraping complete')

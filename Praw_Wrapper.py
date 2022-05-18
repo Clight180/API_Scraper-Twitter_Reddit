@@ -2,16 +2,16 @@ import os
 import praw
 import pandas as pd
 import datetime
+import random
 
 columns=['text', 'time of creation', 'location', 'ups', 'favorite_count']
-commentParentMax = 2
 
 client_id = os.environ.get("client_id")
 client_secret = os.environ.get("client_secret")
 user_agent = os.environ.get("user_agent")
 reddit_read_only = praw.Reddit(client_id=client_id,client_secret=client_secret,user_agent=user_agent)
 
-def subredditScrape(count=50):
+def subredditScrape(count=50, commentParentMax=3):
     '''
     This function returns a pd.Dataframe as a result of scraping one or multiple subreddits
     https://praw.readthedocs.io/en/stable/code_overview/models/subreddit.html
@@ -43,6 +43,7 @@ def subredditScrape(count=50):
         toKeep = input('Subreddit ' + srName + ' , found: ' + subreddit.display_name + ' Keep? (y/n):')
         if toKeep != 'y':
             continue
+        print('Scraping Reddit...')
 
         if phraseSearch == 'n':
             match hottopnewcont:
@@ -58,7 +59,7 @@ def subredditScrape(count=50):
                     print('Invalid stream type')
                     return None
         elif phraseSearch == 'y':
-            api_return = subreddit.search(phrase, time_filter=timeframe, limit=count, sort=hottopnewcont)
+            api_return = subreddit.search(phrase, time_filter=timeframe, sort=hottopnewcont)
 
         else:
             print('Invalid input')
@@ -66,22 +67,24 @@ def subredditScrape(count=50):
 
     submissions = list(api_return)
     for submission in submissions:
-        if len(data) > count:
-            break
         comments = submission.comments
-        for comment in comments:
-            if len(data) > count:
-                break
+        for comment in comments[0:count]:
             try:
                 createdAt = datetime.datetime.fromtimestamp(comment.created_utc)
-                data.append([comment.body, createdAt,None,comment.ups,None])
+                data.append([comment.body, createdAt.isoformat(),None,comment.ups,None])
             except:
                 continue
+
+    # shuffle and return 'count' number of entries. Data is accumulated by sequential submissions but this
+    # allows for random sampling across multiple submissions.
+    print('Shuffling, returning {} number of entries...'.format(count))
+    data = list(map(data.__getitem__, [random.randrange(0,len(data)-1) for i in range(count)]))
+
     return pd.DataFrame(data,columns=columns)
 
 
 
-def redditorScrape(count=50):
+def redditorScrape(count=50, commentParentMax=5):
     '''
     This function returns a pd.Dataframe as a result  of scraping one or multiple redditors
 
@@ -131,7 +134,7 @@ def redditorScrape(count=50):
                     return None
 
         elif phraseSearch == 'y':
-            api_return = redditor.comments(phrase, phrasetime_filter=timeframe, limit=commentParentMax, sort=hottopnewcont)
+            api_return = redditor.comments(phrase, phrasetime_filter=timeframe, sort=hottopnewcont)
         else:
             print('Invalid input')
             return None
