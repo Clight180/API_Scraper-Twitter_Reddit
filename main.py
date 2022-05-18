@@ -1,20 +1,35 @@
 import numpy as np
 import pandas as pd
 from Praw_Wrapper import subredditScrape, redditorScrape
-
+from Tweepy_Wrapper import tweetScrape, userScrape
 
 command = None
 
-df = pd.DataFrame
+df = pd.DataFrame(columns=['text', 'time of creation', 'location', 'ups', 'favorite_count'])
+dfAdd = df
 
 while command != 'exit':
-    command = input('Please select scrape query (Praw: subreddit (1), redditor (2); Tweepy: ')
+    if command == 'export':
+        filename = 'scrapeDF_' + str(np.random.randint(100,999)) + '.csv'
+        df.to_csv(filename)
+        print('Exported filename: ' + filename)
+        break
+    if command =='df size':
+        print('df size: ' + str(df.size))
+
+    command = input('Please command scrape query number, \'df size\', \'export\', or \'exit\' \n'
+                    '{Praw: subreddit (1), redditor (not working); Tweepy: twitter (3), twitter user (not implemented)}: \n'
+                    '>>>: ')
     match command:
         case '1':
-            pdOut = subredditScrape()
-        case '2':
-            pdOut = redditorScrape()
+            dfAdd = subredditScrape()
+        # case '2':
+        #     dfAdd = redditorScrape()
         case '3':
-            pass
+            dfAdd = tweetScrape()
+        # case '4':
+        #     dfAdd = userScrape()
 
+    df = pd.concat((df,dfAdd))
 
+exit('Scraping complete')

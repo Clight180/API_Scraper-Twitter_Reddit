@@ -1,27 +1,37 @@
 import os
 import praw
 import pandas as pd
+import datetime
 
-limit = 5
+columns=['text', 'time of creation', 'location', 'ups', 'favorite_count']
+commentParentMax = 2
 
 client_id = os.environ.get("client_id")
 client_secret = os.environ.get("client_secret")
 user_agent = os.environ.get("user_agent")
 reddit_read_only = praw.Reddit(client_id=client_id,client_secret=client_secret,user_agent=user_agent)
 
-def subredditScrape():
+def subredditScrape(count=50):
     '''
     This function returns a pd.Dataframe as a result of scraping one or multiple subreddits
     https://praw.readthedocs.io/en/stable/code_overview/models/subreddit.html
     :param subreddits:
     :return:
     '''
-    timeframe = input('Please input time filter (all,hour,day,week,month,year): ')
-    hottopnewcont = input('Please specify stream type (hot, top, new, controversial): ')
+    data = []
+
     phraseSearch = input('Is this a phrase search? (y/n): ')
     phrase = None
     if phraseSearch == 'y':
         phrase = input('Please input search phrase: ')
+
+    relevanceTag = ', relevance' if phraseSearch == 'y' else ''
+    hottopnewcont = input('Please specify stream type (hot, top, new, controversial{}): '.format(relevanceTag))
+    timeframe = 'all'
+    if hottopnewcont not in ('hot', 'new', 'relevance'):
+        timeframe = input('Please input time filter (all,hour,day,week,month,year): ')
+
+
 
     subreddit_name = input('Please specify a subreddit or comma separated list of subreddits (\'all\' if reddit-wide): ')
     subreddit_name = subreddit_name.split(',')
@@ -37,38 +47,63 @@ def subredditScrape():
         if phraseSearch == 'n':
             match hottopnewcont:
                 case 'hot':
-                    api_return = subreddit.hot(time_filter=timeframe, limit=limit)
+                    api_return = subreddit.hot(limit=commentParentMax)
                 case 'top':
-                    api_return = subreddit.top(time_filter=timeframe, limit=limit)
+                    api_return = subreddit.top(time_filter=timeframe, limit=commentParentMax)
                 case 'new':
-                    api_return = subreddit.new(time_filter=timeframe, limit=limit)
+                    api_return = subreddit.new(limit=commentParentMax)
                 case 'controversial':
-                    api_return = subreddit.controversial(time_filter=timeframe, limit=limit)
+                    api_return = subreddit.controversial(time_filter=timeframe, limit=commentParentMax)
                 case _:
                     print('Invalid stream type')
                     return None
         elif phraseSearch == 'y':
-            api_return = subreddit.search(phrase, time_filter=timeframe, limit=limit, sort=hottopnewcont)
+            api_return = subreddit.search(phrase, time_filter=timeframe, limit=count, sort=hottopnewcont)
+
         else:
             print('Invalid input')
             return None
 
-    raise NotImplementedError
+    submissions = list(api_return)
+    for submission in submissions:
+        if len(data) > count:
+            break
+        comments = submission.comments
+        for comment in comments:
+            if len(data) > count:
+                break
+            try:
+                createdAt = datetime.datetime.fromtimestamp(comment.created_utc)
+                data.append([comment.body, createdAt,None,comment.ups,None])
+            except:
+                continue
+    return pd.DataFrame(data,columns=columns)
 
 
 
-def redditorScrape():
+def redditorScrape(count=50):
     '''
     This function returns a pd.Dataframe as a result  of scraping one or multiple redditors
+
+    ...
+    This currently does not work possibly because the reddit_read_only does not have authority to view specific user data
+    ...
+
     https://praw.readthedocs.io/en/stable/code_overview/models/redditor.html
     :return:
     '''
-    timeframe = input('Please input time filter (all,hour,day,week,month,year): ')
-    hottopnewcont = input('Please specify stream type (hot, top, new, controversial): ')
+    data = []
+
     phraseSearch = input('Is this a phrase search? (y/n): ')
     phrase = None
     if phraseSearch == 'y':
         phrase = input('Please input search phrase: ')
+
+    relevanceTag = ', relevance' if phraseSearch == 'y' else ''
+    hottopnewcont = input('Please specify stream type (hot, top, new, controversial{}): '.format(relevanceTag))
+    timeframe = 'all'
+    if hottopnewcont not in ('hot', 'new', 'relevance'):
+        timeframe = input('Please input time filter (all,hour,day,week,month,year): ')
 
     redditor_name = input('Please input redditor name(s):')
     redditor_name = redditor_name.split(',')
@@ -76,32 +111,45 @@ def redditorScrape():
         redditor_name[i] = redditor_name[i].strip()
 
     for rdName in redditor_name:
-        redditor = reddit_read_only.subreddit(rdName)
-        toKeep = input('Subreddit ' + rdName + ' , found: ' + redditor.display_name + ' Keep? (y/n):')
+        redditor = reddit_read_only.redditor(rdName)
+        toKeep = input('Redditor ' + rdName + ' , found: ' + redditor.name + ' Keep? (y/n):')
         if toKeep != 'y':
             continue
 
         if phraseSearch == 'n':
             match hottopnewcont:
                 case 'hot':
-                    api_return = redditor.hot(time_filter=timeframe, limit=limit)
+                    api_return = redditor.hot(limit=commentParentMax)
                 case 'top':
-                    api_return = redditor.top(time_filter=timeframe, limit=limit)
+                    api_return = redditor.top(time_filter=timeframe, limit=commentParentMax)
                 case 'new':
-                    api_return = redditor.new(time_filter=timeframe, limit=limit)
+                    api_return = redditor.new(limit=commentParentMax)
                 case 'controversial':
-                    api_return = redditor.controversial(time_filter=timeframe, limit=limit)
+                    api_return = redditor.controversial(time_filter=timeframe, limit=commentParentMax)
                 case _:
                     print('Invalid stream type')
                     return None
 
         elif phraseSearch == 'y':
-            api_return = redditor.search(phrase,phrasetime_filter=timeframe, limit=limit, sort=hottopnewcont)
+            api_return = redditor.comments(phrase, phrasetime_filter=timeframe, limit=commentParentMax, sort=hottopnewcont)
         else:
             print('Invalid input')
             return None
 
-    raise NotImplementedError
+    submissions = list(api_return)
+    for submission in submissions:
+        if len(data) > count:
+            break
+        comments = submission.comments
+        for comment in comments:
+            if len(data) > count:
+                break
+            try:
+                createdAt = datetime.datetime.fromtimestamp(comment.created_utc)
+                data.append([comment.body, createdAt, None, comment.ups, None])
+            except:
+                continue
+    return pd.DataFrame(data, columns=columns)
 
 
 
