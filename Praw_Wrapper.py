@@ -4,7 +4,7 @@ import pandas as pd
 import datetime
 import random
 
-columns=['text', 'time of creation', 'location', 'ups', 'favorite_count']
+columns=['topic','stream','text', 'time of creation', 'location', 'ups', 'favorite_count']
 
 client_id = os.environ.get("client_id")
 client_secret = os.environ.get("client_secret")
@@ -68,17 +68,21 @@ def subredditScrape(count=50, commentParentMax=3):
     submissions = list(api_return)
     for submission in submissions:
         comments = submission.comments
-        for comment in comments[0:count]:
+        for comment in comments[0:count-1]:
             try:
                 createdAt = datetime.datetime.fromtimestamp(comment.created_utc)
-                data.append([comment.body, createdAt.isoformat(),None,comment.ups,None])
+                topic = '{} {}'.format(subreddit_name,phrase) if phrase is not None else '{}'.format(subreddit_name)
+                data.append([topic, 'Reddit', comment.body, createdAt.isoformat(),None,comment.ups,None])
             except:
                 continue
 
     # shuffle and return 'count' number of entries. Data is accumulated by sequential submissions but this
     # allows for random sampling across multiple submissions.
     print('Shuffling, returning {} number of entries...'.format(count))
-    data = list(map(data.__getitem__, [random.randrange(0,len(data)-1) for i in range(count)]))
+    try:
+        data = list(map(data.__getitem__, [random.randrange(0,len(data)-1) for i in range(count)]))
+    except:
+        print('No return...')
 
     return pd.DataFrame(data,columns=columns)
 

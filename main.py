@@ -5,7 +5,7 @@ from Tweepy_Wrapper import tweetScrape, userScrape
 
 command = None
 
-df = pd.DataFrame(columns=['text', 'time of creation', 'location', 'ups', 'favorite_count'])
+df = pd.DataFrame(columns=['topic','stream','text', 'time of creation', 'location', 'ups', 'favorite_count'])
 dfAdd = df
 
 while command != 'exit':

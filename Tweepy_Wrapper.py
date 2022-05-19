@@ -14,7 +14,7 @@ def tweetScrape(count=50):
     https://docs.tweepy.org/en/stable/api.html#search-tweets
     :return:
     '''
-    columns=['text', 'time of creation', 'location', 'ups', 'favorite_count']
+    columns=['topic','stream','text', 'time of creation', 'location', 'ups', 'favorite_count']
     data = []
 
     # geocode = input('Please input geocode (example: 37.7821120598956,-122.400612831116,3km)')
@@ -25,7 +25,7 @@ def tweetScrape(count=50):
 
     for tweet in api_response:
         dt_tweet = tweet.created_at.isoformat()
-        data.append([tweet.text,dt_tweet[:-6],geocode,None,tweet.favorite_count])
+        data.append([query, 'Twitter',tweet.text,dt_tweet[:-6],geocode,None,tweet.favorite_count])
 
     return pd.DataFrame(data,columns=columns)
 
