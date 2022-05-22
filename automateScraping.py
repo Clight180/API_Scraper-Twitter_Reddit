@@ -10,7 +10,7 @@ import pandas as pd
 #Dataframe parameters
 RedditCount = 1000
 TwitterCount = 1000
-columns=['topic','stream','text', 'time of creation', 'location', 'ups', 'favorite_count']
+columns=['topic','stream','text', 'time of creation', 'location', 'ups', 'favorite_count','Keyword Search']
 locationDict = {'San Diego': '32.71642383476381,-117.16143519352777,20km',
                     'San Jose': '37.42144707383498,-121.90427070796471,20km',
                     'New York': '40.72604974544931,-74.00030492668076,20km',
@@ -37,7 +37,7 @@ def TwitterRoutine(Redd_Twitt_queries, sname):
     :param Redd_Twitt_queries:
     :return:
     '''
-    df = pd.DataFrame(columns=['topic', 'stream', 'text', 'time of creation', 'location', 'ups', 'favorite_count'])
+    df = pd.DataFrame(columns=columns)
     Twitt_qLen = len(Redd_Twitt_queries[1])
     Twitt_count = int(TwitterCount / len(locationDict.keys()) / Twitt_qLen)
 
@@ -55,7 +55,7 @@ def TwitterRoutine(Redd_Twitt_queries, sname):
 
             for tweet in tweepy.Cursor(twitter_api.search_tweets, phrase, geocode=geo, count=100).items(max(Twitt_count, Twitt_count+(i*Twitt_count-df.index.size))):
                 dt_tweet = tweet.created_at.isoformat()
-                data.append([phrase, 'Twitter', tweet.text, dt_tweet[:-6], geo, None, tweet.favorite_count])
+                data.append([phrase, 'Twitter', tweet.text, dt_tweet[:-6], geo, None, tweet.favorite_count, phrase])
             df = pd.concat((df,pd.DataFrame(data, columns=columns)))
         print('Twitter Routine>>> df size: ' + str(df.index.size))
 
@@ -68,7 +68,7 @@ def RedditRoutine(Redd_Twitt_queries, sname):
     :param Redd:
     :return:
     '''
-    df = pd.DataFrame(columns=['topic', 'stream', 'text', 'time of creation', 'location', 'ups', 'favorite_count'])
+    df = pd.DataFrame(columns=columns)
     Redd_qLen = len(Redd_Twitt_queries[0])
     Reddit_count = int(RedditCount / len(locationDict.keys()) / len(searchType) / Redd_qLen)
 
@@ -87,12 +87,15 @@ def RedditRoutine(Redd_Twitt_queries, sname):
                         createdAt = datetime.datetime.fromtimestamp(comment.created_utc)
                         topic = '{} {}'.format(sname, phrase) if phrase is not None else '{}'.format(
                             sname)
-                        data.append([topic, 'Reddit', comment.body, createdAt.isoformat(), None, comment.ups, None])
+                        data.append([topic, 'Reddit', comment.body, createdAt.isoformat(), None, comment.ups, None, phrase])
+                        if len(data)%10==0:
+                            print('Collected ' + str(len(data)) + ' data points...')
                     except:
                         continue
 
             try:
                 data = list(map(data.__getitem__, [random.randrange(0, len(data) - 1) for i in range(min(len(data), RedditCount))]))
+                print('Adding ' + str(min(len(data), RedditCount)) + ' to df with phrase: ' + phrase)
             except:
                 print('No return...')
 
@@ -107,7 +110,7 @@ def autoScrape(industryDict):
 
     :return:
     '''
-    df = pd.DataFrame(columns=['topic','stream','text', 'time of creation', 'location', 'ups', 'favorite_count'])
+    df = pd.DataFrame(columns=columns)
     Redd_Twitt_queries = list(industryDict.items())[0][1]
     key = list(industryDict.items())[0][0]
 
