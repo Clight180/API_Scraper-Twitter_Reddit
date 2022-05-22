@@ -2,13 +2,17 @@ import numpy as np
 import pandas as pd
 from Praw_Wrapper import subredditScrape, redditorScrape
 from Tweepy_Wrapper import tweetScrape, userScrape
+import automateScraping
+
+autoScraping = True
+industryDict = {'Ferrari': [['Ferrari', 'Roma','Portofino','Enzo'], ['Ferrari', '#Ferrari', 'Enzo Ferrari','#Roma']]}
 
 command = None
 
 df = pd.DataFrame(columns=['topic','stream','text', 'time of creation', 'location', 'ups', 'favorite_count'])
 dfAdd = df
 
-while command != 'exit':
+while command != 'exit' and autoScraping == False:
     if command == 'export':
         filename = 'scrapeDF_' + str(np.random.randint(100,999)) + '.csv'
         df = df.reset_index(drop=True)
@@ -35,5 +39,8 @@ while command != 'exit':
     if command in ['1','2','3','4']:
         print('Concatenating dfs...')
         df = pd.concat((df,dfAdd))
+
+if autoScraping:
+    automateScraping.autoScrape(industryDict)
 
 exit('Scraping complete')
