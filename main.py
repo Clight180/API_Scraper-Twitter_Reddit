@@ -5,7 +5,11 @@ from Tweepy_Wrapper import tweetScrape, userScrape
 import automateScraping
 
 autoScraping = True
-industryDict = {'Ferrari': [['Ferrari', 'Roma','Portofino','Enzo'], ['Ferrari', '#Ferrari', 'Enzo Ferrari','#Roma']]}
+industryDict1 = {'Lenovo': [['Lenovo','LenovoLegion','Thinkpad'], ['#Lenovo','Lenovo Computer','lenovo legion', '@Lenovo', '@LenovoSupport', 'ThinkReality', '#X1Carbon', '#Ideapad', '#LenovoF1', '#LenovoRising']]}
+industryDict2 = {'Netflix': [['netflix','NetflixBestOf','bestofnetflix'], ['#netflix','@netflix']]}
+
+
+brandSearches = [industryDict2]
 
 command = None
 
@@ -41,6 +45,7 @@ while command != 'exit' and autoScraping == False:
         df = pd.concat((df,dfAdd))
 
 if autoScraping:
-    automateScraping.autoScrape(industryDict)
+    for industryDict in brandSearches:
+        automateScraping.autoScrape(industryDict)
 
 exit('Scraping complete')
