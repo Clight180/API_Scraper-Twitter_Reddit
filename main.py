@@ -5,11 +5,11 @@ from Tweepy_Wrapper import tweetScrape, userScrape
 import automateScraping
 
 autoScraping = True
-industryDict1 = {'Lenovo': [['Lenovo','LenovoLegion','Thinkpad'], ['#Lenovo','Lenovo Computer','lenovo legion', '@Lenovo', '@LenovoSupport', 'ThinkReality', '#X1Carbon', '#Ideapad', '#LenovoF1', '#LenovoRising']]}
-industryDict2 = {'Netflix': [['netflix','NetflixBestOf','bestofnetflix'], ['#netflix','@netflix']]}
+industryDict1 = {'Dell': [['GooglePixel','smartphones','PickAnAndroidForMe','technology'], ['Dell Computers', '@Dell', '@DellCares', '@DellCaresPro','@DellOutlet','#Dell', 'Dell laptop']]}
+industryDict2 = {'Tesla': [['TeslaMotors','TeslaLounge','RealTesla','TeslaModel3'], ['Tesla','@Tesla','#Tesla','']]}
 
 
-brandSearches = [industryDict2]
+brandSearches = [industryDict1]
 
 command = None
 

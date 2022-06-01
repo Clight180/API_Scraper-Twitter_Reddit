@@ -83,6 +83,8 @@ def RedditRoutine(Redd_Twitt_queries, sname):
             for submission in submissions:
                 comments = submission.comments
                 for comment in comments[0:Reddit_count - 1]:
+                    if len(data) > 5 * Reddit_count:
+                        break
                     try:
                         createdAt = datetime.datetime.fromtimestamp(comment.created_utc)
                         topic = '{} {}'.format(sname, phrase) if phrase is not None else '{}'.format(
@@ -113,6 +115,8 @@ def RedditRoutine(Redd_Twitt_queries, sname):
                 for submission in submissions:
                     comments = submission.comments
                     for comment in comments[0:Reddit_count - 1]:
+                        if len(data)> 5*Reddit_count:
+                            break
                         try:
                             createdAt = datetime.datetime.fromtimestamp(comment.created_utc)
                             topic = '{} {}'.format(sname, phrase) if phrase is not None else '{}'.format(
